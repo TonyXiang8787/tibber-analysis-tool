@@ -31,7 +31,7 @@ def get_hourly_energy_data(
     start_date: datetime | date | None = None,
     end_date: datetime | date | None = None,
     days: int | None = None,
-) -> dict[str, list[dict[str, Any]]]:
+) -> list[dict[str, Any]]:
     """
     Retrieve hourly energy consumption or production from Tibber API.
     data_type: 'consumption' or 'production'.
@@ -93,4 +93,4 @@ def get_hourly_energy_data(
         else:
             break
 
-    return {data_type: results}
+    return results
