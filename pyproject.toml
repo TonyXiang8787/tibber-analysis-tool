@@ -15,4 +15,22 @@ requires-python = ">=3.13"
 dependencies = ["requests"]
 license = "BSD-3-Clause"
 
+[project.optional-dependencies]
+dev = ["ruff"]
+
 [project.scripts]
+
+
+[tool.ruff]
+
+line-length = 120
+indent-width = 4
+exclude = [".venv", "__pycache__", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "C4", "SIM", "TID", "PL", "RUF"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
