@@ -20,6 +20,7 @@ dev = ["ruff"]
 
 [project.scripts]
 
+tibber-analysis-tool = "tibber_analysis_tool.main:main"
 
 [tool.ruff]
 
