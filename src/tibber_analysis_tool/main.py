@@ -1,8 +1,9 @@
 import argparse
 from datetime import datetime
 
-from tibber_analysis_tool.tibber_energy_summary import get_hourly_energy_data
 import polars as pl
+
+from tibber_analysis_tool.tibber_energy_summary import get_hourly_energy_data
 
 
 def main():

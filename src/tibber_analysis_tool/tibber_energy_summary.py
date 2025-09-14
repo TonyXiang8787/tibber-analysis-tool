@@ -106,7 +106,7 @@ def get_hourly_energy_data(
         for node in nodes:
             node_from_dt = datetime.fromisoformat(node["from"])
             end_dt = datetime.fromisoformat(end_date_str)
-            if node_from_dt > end_dt:
+            if node_from_dt >= end_dt:
                 return results  # Break both inner and outer loop
             results.append({"from": node["from"], data_type: node.get(data_type, 0)})
 
