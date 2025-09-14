@@ -67,6 +67,7 @@ def get_hourly_energy_data(
 
     results = []
     after_cursor = base64.b64encode(start_date_str.encode()).decode()
+    cost_profit = "cost" if data_type == "consumption" else "profit"
     first = True
     while True:
         after_str = f'"{after_cursor}"'
@@ -78,6 +79,7 @@ def get_hourly_energy_data(
                 nodes {{
                   from
                   {data_type}
+                  {cost_profit}
                 }}
                 pageInfo {{
                   hasNextPage
@@ -113,7 +115,7 @@ def get_hourly_energy_data(
             end_dt = datetime.fromisoformat(end_date_str)
             if node_from_dt >= end_dt:
                 return results  # Break both inner and outer loop
-            results.append({"from": node["from"], data_type: node.get(data_type, 0)})
+            results.append(node)
 
         if page_info.get("hasNextPage"):
             after_cursor = page_info.get("endCursor")
