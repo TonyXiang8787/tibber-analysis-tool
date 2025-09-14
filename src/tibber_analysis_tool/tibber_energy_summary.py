@@ -73,7 +73,7 @@ def get_hourly_energy_data(
         {{
           viewer {{
             homes {{
-              {data_type}(resolution: HOURLY, after: {after_str}, first: 744) {{
+              {data_type}(resolution: HOURLY, after: {after_str}, first: 5) {{
                 nodes {{
                   from
                   {data_type}

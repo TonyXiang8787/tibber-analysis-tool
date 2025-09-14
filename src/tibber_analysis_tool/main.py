@@ -2,6 +2,7 @@ import argparse
 from datetime import datetime
 
 from tibber_analysis_tool.tibber_energy_summary import get_hourly_energy_data
+import polars as pl
 
 
 def main():
@@ -19,7 +20,8 @@ def main():
     result = {}
     result["consumption"] = get_hourly_energy_data("consumption", start_date=start_date, end_date=end_date, days=days)
     result["production"] = get_hourly_energy_data("production", start_date=start_date, end_date=end_date, days=days)
-    print(result)
+    print(pl.DataFrame(result["consumption"]))
+    print(pl.DataFrame(result["production"]))
 
 
 if __name__ == "__main__":
