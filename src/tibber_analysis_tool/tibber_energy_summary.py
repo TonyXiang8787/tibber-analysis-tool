@@ -1,3 +1,4 @@
+import base64
 import os
 from datetime import date, datetime, timedelta
 from typing import Any
@@ -65,14 +66,14 @@ def get_hourly_energy_data(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     results = []
-    after_cursor = None
+    after_cursor = base64.b64encode(start_date_str.encode()).decode()
     while True:
-        after_str = f'"{after_cursor}"' if after_cursor else "null"
+        after_str = f'"{after_cursor}"'
         query = f"""
         {{
           viewer {{
             homes {{
-              {data_type}(resolution: HOURLY, after: {after_str}, first: 10) {{
+              {data_type}(resolution: HOURLY, after: {after_str}, first: 744) {{
                 nodes {{
                   from
                   {data_type}
@@ -103,6 +104,10 @@ def get_hourly_energy_data(
             raise RuntimeError(f"Unexpected response from Tibber API: {data['errors']}") from None
 
         for node in nodes:
+            node_from_dt = datetime.fromisoformat(node["from"])
+            end_dt = datetime.fromisoformat(end_date_str)
+            if node_from_dt > end_dt:
+                return results  # Break both inner and outer loop
             results.append({"from": node["from"], data_type: node.get(data_type, 0)})
 
         if page_info.get("hasNextPage"):
