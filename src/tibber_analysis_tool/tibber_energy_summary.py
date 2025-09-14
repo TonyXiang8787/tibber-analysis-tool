@@ -1,6 +1,7 @@
 import os
 from datetime import date, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -10,15 +11,28 @@ def _resolve_date_range(start_date, end_date, days):
     Helper to resolve start and end date strings from either start/end or days.
     Returns (start_date_str, end_date_str)
     """
+    AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+
+    def to_iso8601(dt):
+        # Convert to Amsterdam timezone and return ISO8601 with offset
+        if isinstance(dt, datetime):
+            dt = dt.replace(tzinfo=AMSTERDAM) if dt.tzinfo is None else dt.astimezone(AMSTERDAM)
+            return dt.replace(microsecond=0).isoformat()
+        elif isinstance(dt, date):
+            dt = datetime(dt.year, dt.month, dt.day, tzinfo=AMSTERDAM)
+            return dt.isoformat()
+        else:
+            raise ValueError("Date must be datetime or date object")
+
     if days is not None:
         end_dt = datetime.now().date() - timedelta(days=1)
-        start_dt = end_dt - timedelta(days=days - 1)
-        start_date_str = start_dt.strftime("%Y-%m-%d")
-        end_date_str = end_dt.strftime("%Y-%m-%d")
+        start_dt = end_dt - timedelta(days=days)
+        start_date_str = to_iso8601(start_dt)
+        end_date_str = to_iso8601(end_dt)
     elif start_date and end_date:
-        if hasattr(start_date, "strftime") and hasattr(end_date, "strftime"):
-            start_date_str = start_date.strftime("%Y-%m-%d")
-            end_date_str = end_date.strftime("%Y-%m-%d")
+        if hasattr(start_date, "isoformat") and hasattr(end_date, "isoformat"):
+            start_date_str = to_iso8601(start_date)
+            end_date_str = to_iso8601(end_date)
         else:
             raise ValueError("start_date and end_date must be datetime/date objects")
     else:
@@ -91,7 +105,6 @@ def get_hourly_energy_data(
         for node in nodes:
             results.append({"from": node["from"], data_type: node.get(data_type, 0)})
 
-        break
         if page_info.get("hasNextPage"):
             after_cursor = page_info.get("endCursor")
             if not after_cursor:
