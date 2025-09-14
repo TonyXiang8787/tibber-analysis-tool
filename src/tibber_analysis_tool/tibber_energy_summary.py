@@ -67,6 +67,7 @@ def get_hourly_energy_data(
 
     results = []
     after_cursor = base64.b64encode(start_date_str.encode()).decode()
+    first = True
     while True:
         after_str = f'"{after_cursor}"'
         query = f"""
@@ -103,6 +104,10 @@ def get_hourly_energy_data(
         except (KeyError, IndexError, TypeError):
             raise RuntimeError(f"Unexpected response from Tibber API: {data['errors']}") from None
 
+        if first:
+            first = False
+        else:
+            nodes = nodes[1:]  # Skip the first node to avoid overlap
         for node in nodes:
             node_from_dt = datetime.fromisoformat(node["from"])
             end_dt = datetime.fromisoformat(end_date_str)
