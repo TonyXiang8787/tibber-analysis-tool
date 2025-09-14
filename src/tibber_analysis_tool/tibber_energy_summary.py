@@ -54,26 +54,51 @@ def get_hourly_energy_data(
     after_cursor = None
     while True:
         after_str = f'"{after_cursor}"' if after_cursor else "null"
-        query = f"""
-        {{
-          viewer {{
-            homes {{
-              {data_type}(resolution: HOURLY, after: {after_str}, from: \"{start_date_str}\", to: \"{end_date_str}\") {{
-                nodes {{
-                  from
-                  {data_type}
-                }}
-                pageInfo {{
-                  hasNextPage
-                  endCursor
-                }}
-              }}
-            }}
-          }}
-        }}
-        """
-        response = requests.post(url, headers=headers, json={"query": query})
-        response.raise_for_status()
+                if data_type == "consumption":
+                        query = f"""
+                        {{
+                            viewer {{
+                                homes {{
+                                    hourlyConsumption(resolution: HOURLY, after: {after_str}, from: \"{start_date_str}\", to: \"{end_date_str}\") {{
+                                        nodes {{
+                                            from
+                                            consumption
+                                        }}
+                                        pageInfo {{
+                                            hasNextPage
+                                            endCursor
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }}
+                        """
+                else:
+                        query = f"""
+                        {{
+                            viewer {{
+                                homes {{
+                                    hourlyProduction(resolution: HOURLY, after: {after_str}, from: \"{start_date_str}\", to: \"{end_date_str}\") {{
+                                        nodes {{
+                                            from
+                                            production
+                                        }}
+                                        pageInfo {{
+                                            hasNextPage
+                                            endCursor
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }}
+                        """
+        try:
+            response = requests.post(url, headers=headers, json={"query": query})
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            print("Status code:", response.status_code)
+            print("Response text:", response.text)
+            raise
         data = response.json()
         try:
             home = data["data"]["viewer"]["homes"][0]
