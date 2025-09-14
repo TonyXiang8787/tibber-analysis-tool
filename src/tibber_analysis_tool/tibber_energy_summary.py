@@ -58,7 +58,7 @@ def get_hourly_energy_data(
         {{
           viewer {{
             homes {{
-              {data_type}(resolution: HOURLY, after: {after_str}, from: \"{start_date_str}\", to: \"{end_date_str}\") {{
+              {data_type}(resolution: HOURLY, after: {after_str}, first: 10) {{
                 nodes {{
                   from
                   {data_type}
@@ -86,11 +86,12 @@ def get_hourly_energy_data(
             nodes = table["nodes"]
             page_info = table["pageInfo"]
         except (KeyError, IndexError, TypeError):
-            raise RuntimeError("Unexpected response from Tibber API") from None
+            raise RuntimeError(f"Unexpected response from Tibber API: {data['errors']}") from None
 
         for node in nodes:
             results.append({"from": node["from"], data_type: node.get(data_type, 0)})
 
+        break
         if page_info.get("hasNextPage"):
             after_cursor = page_info.get("endCursor")
             if not after_cursor:

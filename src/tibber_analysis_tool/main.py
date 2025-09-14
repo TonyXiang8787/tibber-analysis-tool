@@ -17,12 +17,8 @@ def main():
     days = args.days if not (args.start and args.end) else None
 
     result = {}
-    result["consumption"] = get_hourly_energy_data("consumption", start_date=start_date, end_date=end_date, days=days)[
-        "consumption"
-    ]
-    result["production"] = get_hourly_energy_data("production", start_date=start_date, end_date=end_date, days=days)[
-        "production"
-    ]
+    result["consumption"] = get_hourly_energy_data("consumption", start_date=start_date, end_date=end_date, days=days)
+    result["production"] = get_hourly_energy_data("production", start_date=start_date, end_date=end_date, days=days)
     print(result)
 
 
