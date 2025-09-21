@@ -10,7 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description="Query Tibber hourly energy data.")
     parser.add_argument("--start", type=str, help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, help="End date (YYYY-MM-DD)")
-    parser.add_argument("--days", type=int, help="Number of days in history until yesterday (default: 31)", default=31)
+    parser.add_argument("--days", type=int, help="Number of days in history until yesterday (default: 7)", default=7)
 
     args = parser.parse_args()
 
