@@ -36,8 +36,26 @@ def main():
     else:
         merged["average_price"] = float("nan")
 
-    print(pl.DataFrame(consumption_data))
-    print(pl.DataFrame(production_data))
+    df_consumption = pl.DataFrame(consumption_data)
+    df_production = pl.DataFrame(production_data)
+
+    # Merge on 'from', suffix columns, and rename 'from' to 'timestamp'
+    df_merged = df_consumption.join(
+        df_production,
+        on="from",
+        how="outer",
+        suffix="_production",
+    )
+    df_merged = df_merged.rename({"from": "timestamp"})
+    # Drop the duplicate 'from_production' column if it exists
+    if "from_production" in df_merged.columns:
+        df_merged = df_merged.drop("from_production")
+    # Fill missing values with 0.0
+    df_merged = df_merged.fill_null(0.0)
+    df_merged = df_merged.sort("timestamp")
+    df_merged = df_merged.set_sorted("timestamp")
+
+    print(df_merged)
     print("Summary:")
     summary_df = pl.DataFrame([merged]).transpose(include_header=True)
     summary_df.columns = ["key", "value"]
