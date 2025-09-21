@@ -3,8 +3,9 @@ import os
 from datetime import date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
-import requests
+
 import holidays
+import requests
 
 
 def aggregate_by_peak_offpeak(hourly_data: list[dict[str, Any]], data_type: str) -> dict[str, Any]:
