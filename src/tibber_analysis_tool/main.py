@@ -21,7 +21,7 @@ def main():
     result = {}
     result["consumption"] = get_hourly_energy_data("consumption", start_date=start_date, end_date=end_date, days=days)
     result["production"] = get_hourly_energy_data("production", start_date=start_date, end_date=end_date, days=days)
-    
+
     pl.Config.set_tbl_rows(100)
     print(pl.DataFrame(result["consumption"]))
     print(pl.DataFrame(result["production"]))

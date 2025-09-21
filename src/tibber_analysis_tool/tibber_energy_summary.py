@@ -3,8 +3,57 @@ import os
 from datetime import date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
-
 import requests
+import holidays
+
+
+def aggregate_by_peak_offpeak(hourly_data: list[dict[str, Any]], data_type: str) -> dict[str, Any]:
+    """
+    Aggregates hourly consumption/production and cost/profit by Dutch peak and off-peak hours.
+    Dutch regulation (2025):
+      - Peak: Mon-Fri, 07:00-23:00 (Amsterdam time)
+      - Off-peak: All other times (including weekends, holidays, and 23:00-07:00)
+    Returns a dict with keys:
+      - 'peak': sum of consumption/production during peak hours
+      - 'offpeak': sum of consumption/production during off-peak hours
+      - 'total_cost_or_profit': sum of cost (for consumption) or profit (for production) for all hours
+    """
+    AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+    PEAK_START_HOUR = 7
+    PEAK_END_HOUR = 23
+    PEAK_END_WEEKDAY = 4
+    nl_holidays = holidays.country_holidays("NL")
+    peak_total = 0.0
+    offpeak_total = 0.0
+    total_cost_or_profit = 0.0
+    for entry in hourly_data:
+        dt = datetime.fromisoformat(entry["from"]).astimezone(AMSTERDAM)
+        hour = dt.hour
+        weekday = dt.weekday()
+        is_holiday = dt.date() in nl_holidays
+        is_peak = (not is_holiday) and (0 <= weekday <= PEAK_END_WEEKDAY) and (PEAK_START_HOUR <= hour < PEAK_END_HOUR)
+        value = entry.get(data_type, 0.0) or 0.0
+        if is_peak:
+            peak_total += value
+        else:
+            offpeak_total += value
+        # cost for consumption, profit for production
+        if data_type == "consumption":
+            total_cost_or_profit += entry.get("cost", 0.0) or 0.0
+        else:
+            total_cost_or_profit += entry.get("profit", 0.0) or 0.0
+    if data_type == "consumption":
+        return {
+            "peak_consumption": peak_total,
+            "off_peak_consumption": offpeak_total,
+            "cost": total_cost_or_profit,
+        }
+    else:
+        return {
+            "peak_production": peak_total,
+            "off_peak_production": offpeak_total,
+            "profit": total_cost_or_profit,
+        }
 
 
 def _resolve_date_range(start_date, end_date, days):
