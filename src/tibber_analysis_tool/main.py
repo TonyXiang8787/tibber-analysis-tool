@@ -27,6 +27,15 @@ def main():
     merged = {**agg_consumption, **agg_production}
     merged["net-cost"] = agg_consumption["cost"] - agg_production["profit"]
 
+    # Calculate all consumption and all production as sum of peak and off-peak
+    all_consumption = agg_consumption["peak_consumption"] + agg_consumption["off_peak_consumption"]
+    all_production = agg_production["peak_production"] + agg_production["off_peak_production"]
+    net_energy = all_consumption - all_production
+    if net_energy != 0:
+        merged["average_price"] = merged["net-cost"] / net_energy
+    else:
+        merged["average_price"] = float("nan")
+
     print(pl.DataFrame(consumption_data))
     print(pl.DataFrame(production_data))
     print("Summary:")
