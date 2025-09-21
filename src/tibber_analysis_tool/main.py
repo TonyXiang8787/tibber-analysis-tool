@@ -29,7 +29,10 @@ def main():
 
     print(pl.DataFrame(consumption_data))
     print(pl.DataFrame(production_data))
-    print(merged)
+    print("Summary:")
+    summary_df = pl.DataFrame([merged]).transpose(include_header=True)
+    summary_df.columns = ["key", "value"]
+    print(summary_df)
 
 
 if __name__ == "__main__":
