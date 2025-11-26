@@ -1,0 +1,58 @@
+name: Build Python Package
+
+on:
+  workflow_call:
+
+jobs:
+  set-version:
+    runs-on : ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      
+      - name: Set PyPI Version
+        uses: PowerGridModel/pgm-version-bump@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: convert version
+        run:
+          cp PYPI_VERSION VERSION
+          cat VERSION
+
+      - name: Keep version file
+        uses: actions/upload-artifact@v5
+        with:
+          name: version
+          path: VERSION
+
+  build:
+    runs-on: ubuntu-latest
+    needs: set-version
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: version
+          path: .
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      
+      - name: Build package
+        run: |
+          uv build --no-create-gitignore
+          ls -al dist/
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
