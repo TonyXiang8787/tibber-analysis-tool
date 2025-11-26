@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exit on errors, unbound variables, and errors in pipelines
 set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
@@ -12,7 +11,6 @@ old_version="$2"
 new_version="$3"
 
 find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r archive; do
-    # Make sure $archive is non-empty
     [[ -z "${archive:-}" ]] && continue
 
     dir=$(dirname "$archive")
@@ -35,9 +33,19 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
         tar -xzf "$archive" -C "$tmpdir"
     fi
 
+    # Patch directory names (deepest first)
+    find "$tmpdir" -depth -type d | while read -r d; do
+        [[ -z "${d:-}" ]] && continue
+        dbase=$(basename "$d")
+        newdbase="${dbase//$old_version/$new_version}"
+        if [[ "$dbase" != "$newdbase" ]]; then
+            dparent=$(dirname "$d")
+            mv "$d" "$dparent/$newdbase"
+        fi
+    done
+
     # Edit files inside
     find "$tmpdir" -type f | while read -r f; do
-        # Check that $f is non-empty before using
         [[ -z "${f:-}" ]] && continue
         fdir=$(dirname "$f")
         fbase=$(basename "$f")
@@ -46,7 +54,6 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
             mv "$f" "$fdir/$newfbase"
             f="$fdir/$newfbase"
         fi
-        # Substitute contents if text
         if file "$f" | grep -qE 'text|ASCII|Unicode'; then
             sed -i "s/$old_version/$new_version/g" "$f"
         fi
@@ -58,9 +65,9 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
     rm -f "$archive"
 
     if [[ "$archive" == *.whl ]]; then
-        (cd "$tmpdir" && zip -r "$archive" .)
+        zip -rq "$archive" "$tmpdir"/*
     elif [[ "$archive" == *.tar.gz ]]; then
-        (cd "$tmpdir" && tar -czf "$archive" .)
+        tar -czf "$archive" -C "$tmpdir" .
     fi
 
     rm -rf "$tmpdir"
