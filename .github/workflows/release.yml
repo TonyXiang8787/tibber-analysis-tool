@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      
+      - name: Set PyPI Version
+        uses: PowerGridModel/pgm-version-bump@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: set version
+        id: set_version
+        run: |
+          echo "version=$(cat PYPI_VERSION)" >> $GITHUB_OUTPUT
+
+      - name: get run id of build workflow
+        id: get_run_id
+        uses: TonyXiang8787/get-run-id@main
+        with:
+          workflow_name: "Build Python Package"
+
+      - name: Display run ID
+        run: |
+          echo "Found run ID: ${{ steps.get_run_id.outputs.run_id }}"
+      
+      - name: Download artifact from found run
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.get_run_id.outputs.run_id }}
+          path: dist
+      
+      - name: display files
+        run: |
+          ls -al dist/
