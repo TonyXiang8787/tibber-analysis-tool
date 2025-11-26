@@ -47,3 +47,13 @@ jobs:
       - name: display files
         run: |
           ls -al dist/
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./dist/*
+          tag_name: v${{ steps.set_version.outputs.version }}
+          prerelease: ${{ github.ref != 'refs/heads/main'}}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
