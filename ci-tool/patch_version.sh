@@ -1,5 +1,5 @@
 #!/bin/bash
-# Exit immediately on error, treat unset variables as an error, and fail if any command in a pipeline fails
+# Exit on errors, unbound variables, and errors in pipelines
 set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
@@ -12,6 +12,9 @@ old_version="$2"
 new_version="$3"
 
 find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r archive; do
+    # Make sure $archive is non-empty
+    [[ -z "${archive:-}" ]] && continue
+
     dir=$(dirname "$archive")
     fname=$(basename "$archive")
 
@@ -28,15 +31,16 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
     # Unpack archive
     if [[ "$archive" == *.whl ]]; then
         unzip -q "$archive" -d "$tmpdir"
-    elif [[ "$archive" == *.tar.gz" ]]; then
+    elif [[ "$archive" == *.tar.gz ]]; then
         tar -xzf "$archive" -C "$tmpdir"
     fi
 
     # Edit files inside
     find "$tmpdir" -type f | while read -r f; do
+        # Check that $f is non-empty before using
+        [[ -z "${f:-}" ]] && continue
         fdir=$(dirname "$f")
         fbase=$(basename "$f")
-        # Rename files with old_version in name
         newfbase="${fbase//$old_version/$new_version}"
         if [[ "$fbase" != "$newfbase" ]]; then
             mv "$f" "$fdir/$newfbase"
@@ -48,7 +52,7 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
         fi
     done
 
-    # Prepare to re-pack archive at its original location
+    # Ensure output archive path and directory exists
     parent_dir=$(dirname "$archive")
     mkdir -p "$parent_dir"
     rm -f "$archive"
