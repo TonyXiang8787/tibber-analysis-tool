@@ -5,7 +5,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tibber-analysis-tool"
-version = "0.1.0"
 description = "Tibber energy analysis"
 readme = "README.md"
 authors = [
@@ -14,16 +13,19 @@ authors = [
 requires-python = ">=3.13"
 dependencies = ["requests", "polars", "holidays"]
 license = "BSD-3-Clause"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = ["ruff"]
 
-[project.scripts]
+[tool.hatch.version]
+path = "VERSION"
+pattern = "^\\s*(?P<version>[^\\s]+)\\s*$"
 
+[project.scripts]
 tibber-analysis-tool = "tibber_analysis_tool.main:main"
 
 [tool.ruff]
-
 line-length = 120
 indent-width = 4
 exclude = [".venv", "__pycache__", "build", "dist"]
