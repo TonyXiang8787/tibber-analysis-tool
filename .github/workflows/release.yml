@@ -26,7 +26,9 @@ jobs:
       - name: set version
         id: set_version
         run: |
-          echo "version=$(cat PYPI_VERSION)" >> $GITHUB_OUTPUT
+          cp PYPI_VERSION VERSION
+          cat VERSION
+          echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
       - name: get run id of build workflow
         id: get_run_id
@@ -45,9 +47,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.get_run_id.outputs.run_id }}
           path: dist
-      
-      - name: display files
+
+      - name: Download version from found run
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.get_run_id.outputs.run_id }}
+          path: old_version
+
+      - name: set old version
+        id: set_old_version
         run: |
+          cat old_version/VERSION
+          echo "old_version=$(cat old_version/VERSION)" >> $GITHUB_OUTPUT
+      
+      - name: display files, and repackage with new version
+        run: |
+          ls -al dist/
+          ./ci-tool/patch_version.sh dist/ ${{ steps.set_old_version.outputs.old_version }} ${{ steps.set_version.outputs.version }}
           ls -al dist/
 
       - name: Create GitHub release
