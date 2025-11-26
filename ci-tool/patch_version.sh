@@ -1,4 +1,6 @@
 #!/bin/bash
+# Exit immediately on error, treat unset variables as an error, and fail if any command in a pipeline fails
+set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
     echo "Usage: $0 <path> <old_version> <new_version>"
@@ -9,7 +11,7 @@ path="$1"
 old_version="$2"
 new_version="$3"
 
-find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read archive; do
+find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r archive; do
     dir=$(dirname "$archive")
     fname=$(basename "$archive")
 
@@ -23,14 +25,15 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read archiv
 
     tmpdir=$(mktemp -d)
 
+    # Unpack archive
     if [[ "$archive" == *.whl ]]; then
         unzip -q "$archive" -d "$tmpdir"
-    elif [[ "$archive" == *.tar.gz ]]; then
+    elif [[ "$archive" == *.tar.gz" ]]; then
         tar -xzf "$archive" -C "$tmpdir"
     fi
 
     # Edit files inside
-    find "$tmpdir" -type f | while read f; do
+    find "$tmpdir" -type f | while read -r f; do
         fdir=$(dirname "$f")
         fbase=$(basename "$f")
         # Rename files with old_version in name
@@ -45,15 +48,15 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read archiv
         fi
     done
 
-    # Repack
-    outarchive="$dir/$fname"
+    # Prepare to re-pack archive at its original location
+    parent_dir=$(dirname "$archive")
+    mkdir -p "$parent_dir"
+    rm -f "$archive"
+
     if [[ "$archive" == *.whl ]]; then
-        # Remove old archive since we'll overwrite it
-        rm -f "$archive"
-        (cd "$tmpdir" && zip -r "$outarchive" .)
-    elif [[ "$archive" == *.tar.gz ]]; then
-        rm -f "$archive"
-        (cd "$tmpdir" && tar -czf "$outarchive" .)
+        (cd "$tmpdir" && zip -r "$archive" .)
+    elif [[ "$archive" == *.tar.gz" ]]; then
+        (cd "$tmpdir" && tar -czf "$archive" .)
     fi
 
     rm -rf "$tmpdir"
