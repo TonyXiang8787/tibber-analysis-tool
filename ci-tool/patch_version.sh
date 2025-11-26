@@ -59,7 +59,7 @@ find "$path" -type f \( -name "*.whl" -o -name "*.tar.gz" \) | while read -r arc
 
     if [[ "$archive" == *.whl ]]; then
         (cd "$tmpdir" && zip -r "$archive" .)
-    elif [[ "$archive" == *.tar.gz" ]]; then
+    elif [[ "$archive" == *.tar.gz ]]; then
         (cd "$tmpdir" && tar -czf "$archive" .)
     fi
 
