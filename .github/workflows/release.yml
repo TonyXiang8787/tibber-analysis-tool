@@ -30,7 +30,7 @@ jobs:
         id: get_run_id
         uses: TonyXiang8787/get-run-id@main
         with:
-          workflow_name: "Build Python Package"
+          workflow_name: "CI"
 
       - name: Display run ID
         run: |
